@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Project Overview – Kidz Digi Labz</title>
+</head>
+<body>
+  <h1>Projects Database</h1>
+  <div id="project-container"></div>
+
+  <script>
+    fetch('data/project_data.json')
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById('project-container');
+        data.forEach(entry => {
+          const div = document.createElement('div');
+          div.innerHTML = `<h3>${entry["Project Name"] || "Unnamed Project"}</h3>
+                           <p><strong>Owner:</strong> ${entry["Owner"] || "N/A"}<br>
+                           <strong>Status:</strong> ${entry["Status"] || "Unknown"}</p><hr>`;
+          container.appendChild(div);
+        });
+      });
+  </script>
+</body>
+</html>
