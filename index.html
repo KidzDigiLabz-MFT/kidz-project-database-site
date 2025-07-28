@@ -1,25 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Project Overview – Kidz Digi Labz</title>
+    <title>Kidz Digi Labz Hub</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Projects Database</h1>
-  <div id="project-container"></div>
+    <div class="container">
+        <h1>🎮 Kidz Digi Labz Hub</h1>
 
-  <script>
+        <h2>📊 Project Database</h2>
+        <div id="project-container"></div>
+
+        <h2>📅 Latest VR Headset Rota</h2>
+        <p><a href="rotas/VR Rota March April 2025.pdf" target="_blank">View March–April Rota (PDF)</a></p>
+
+        <h2>📰 Newsletters</h2>
+        <div id="newsletter-feed"></div>
+    </div>
+
+    <script>
+    // Load Project Data
     fetch('data/project_data.json')
       .then(res => res.json())
       .then(data => {
         const container = document.getElementById('project-container');
         data.forEach(entry => {
           const div = document.createElement('div');
-          div.innerHTML = `<h3>${entry["Project Name"] || "Unnamed Project"}</h3>
-                           <p><strong>Owner:</strong> ${entry["Owner"] || "N/A"}<br>
-                           <strong>Status:</strong> ${entry["Status"] || "Unknown"}</p><hr>`;
+          div.innerHTML = `<h3>${entry["Project Name"]}</h3>
+                           <p><strong>Owner:</strong> ${entry["Owner"]}<br>
+                           <strong>Status:</strong> ${entry["Status"]}</p><hr>`;
           container.appendChild(div);
         });
       });
-  </script>
+
+    // Load Newsletter Feed
+    fetch('newsletters/newsletters.json')
+      .then(res => res.json())
+      .then(posts => {
+        const feed = document.getElementById('newsletter-feed');
+        posts.forEach(post => {
+          const div = document.createElement('div');
+          div.innerHTML = `<p><a href="newsletters/${post.filename}" target="_blank"><strong>${post.title}</strong></a><br>${post.summary}</p>`;
+          feed.appendChild(div);
+        });
+      });
+    </script>
 </body>
 </html>
