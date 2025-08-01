@@ -24,8 +24,10 @@
         </section>
 
         <section id="database">
-            <h2>📊 Project Database</h2>
-            <div id="project-container" class="post-content"></div>
+            <h2>📊 Project Database (Live from GitHub)</h2>
+            <div id="project-container" class="post-content">
+                <p>Loading project data from GitHub...</p>
+            </div>
         </section>
 
         <section id="rota">
@@ -39,18 +41,23 @@
     </footer>
 
     <script>
-    fetch('data/project_data.json')
+    fetch("https://api.github.com/orgs/KidzDigiLabz-MFT/projects/KidzDigiLabz_master_Tracker/issues")
       .then(res => res.json())
-      .then(data => {
+      .then(issues => {
         const container = document.getElementById('project-container');
-        data.forEach(entry => {
+        container.innerHTML = '';
+        issues.forEach(issue => {
+          const labels = issue.labels.map(l => l.name).join(", ");
           const div = document.createElement('div');
           div.className = 'post-card';
-          div.innerHTML = `<h3>${entry["Project Name"]}</h3>
-                           <p><strong>Owner:</strong> ${entry["Owner"]}<br>
-                           <strong>Status:</strong> ${entry["Status"]}</p>`;
+          div.innerHTML = `<h3><a href="${issue.html_url}" target="_blank">${issue.title}</a></h3>
+                           <p>${issue.body || "No description."}</p>
+                           <p><strong>Status:</strong> ${issue.state} | <strong>Labels:</strong> ${labels}</p>`;
           container.appendChild(div);
         });
+      })
+      .catch(error => {
+        document.getElementById('project-container').innerHTML = '<p>Unable to load data from GitHub. Please try again later.</p>';
       });
 
     fetch('newsletters/newsletters.json')
