@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <title>Kidz Digi Labz</title>
-<script src="theme.js"></script>
 </head><body>
 <header>
 	<div class="container nav">
@@ -20,7 +19,7 @@
 				<a href="tasks.html">Tasks</a>
 				<a href="staff.html">Staff</a>
 				<a href="assets/brand/brand-guide.html">Brand</a>
-			</nav><button class="button" data-theme-toggle style="margin-left:8px">🌙 Dark</button>
+			</nav>
 		</div>
 	</div>
 </header>
@@ -50,12 +49,11 @@
 	</section>
 
 	<section class="card">
-		<h2 class="section-title">GitHub Browser</h2>
+		<h2 class="section-title">GitHub Browser (Preset Repos)</h2>
 		<p class="small" style="color:var(--muted)">Use a GitHub Personal Access Token (classic) with read access. Token is stored in session only.</p>
 		<div class="tabbar">
 			<input id="ghToken" placeholder="GitHub token" style="min-width:280px">
-			<input id="ghOwner" placeholder="owner/org" value="KidzDigiLabz">
-			<input id="ghRepo" placeholder="repo">
+			<select id="ghPreset"></select>
 			<input id="ghBranch" placeholder="branch (default: main)">
 			<input id="ghPath" placeholder="path (e.g., /)" value="/">
 			<button class="button primary" id="ghList">List</button>
@@ -87,7 +85,19 @@ async function browse(owner,repo,branch,path){path=path||'/';if(path!=='/'&&path
 async function fetchFile(owner,repo,branch,path,name){const ref=branch?`?ref=${encodeURIComponent(branch)}`:'';const full=(path==='/'?'':path)+'/'+name;const url=`https://api.github.com/repos/${owner}/${repo}/contents${full}${ref}`;const r=await fetch(url,{headers:ghHeaders()});if(!r.ok)throw new Error('GitHub error '+r.status);return r.json()}
 async function previewFile(owner,repo,branch,path,name){try{const meta=await fetchFile(owner,repo,branch,path,name);const out=document.getElementById('ghOut');const card=document.createElement('div');card.className='card';card.style.marginTop='8px';if(meta.encoding==='base64'){const bytes=Uint8Array.from(atob(meta.content.replace(/\n/g,'')), c=>c.charCodeAt(0));const blob=new Blob([bytes]);const url=URL.createObjectURL(blob);let el; if(/\.(png|jpg|jpeg|gif|webp|svg)$/i.test(name)){el=document.createElement('img');el.src=url;el.style.maxWidth='100%'} else if(/\.(mp4|webm|ogg)$/i.test(name)){el=document.createElement('video');el.controls=true;el.src=url;el.style.maxWidth='100%'} else if(/\.(pdf)$/i.test(name)){el=document.createElement('iframe');el.src=url;el.style.width='100%';el.style.height='480px'} else {el=document.createElement('pre');el.textContent=new TextDecoder().decode(bytes).slice(0,20000)} card.appendChild(el) } else {card.textContent='Unable to preview this file.'} out.appendChild(card) }catch(e){alert(e.message)}}
 async function downloadFile(owner,repo,branch,path,name){try{const meta=await fetchFile(owner,repo,branch,path,name);const bytes=Uint8Array.from(atob(meta.content.replace(/\n/g,'')), c=>c.charCodeAt(0));const blob=new Blob([bytes]);const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}catch(e){alert(e.message)}}
-document.getElementById('ghList').onclick=()=>{const token=document.getElementById('ghToken').value; if(token) saveToken(token); const owner=document.getElementById('ghOwner').value; const repo=document.getElementById('ghRepo').value; const branch=document.getElementById('ghBranch').value; const path=document.getElementById('ghPath').value||'/'; browse(owner,repo,branch,path)}
+document.getElementById('ghList').onclick=()=>{const token=document.getElementById('ghToken').value; if(token) saveToken(token); const [owner,repo]=document.getElementById('ghPreset').value.split('/') const branch=document.getElementById('ghBranch').value; const path=document.getElementById('ghPath').value||'/'; browse(owner,repo,branch,path)}
+
+const PRESETS = [
+	{ label: 'KDL – Website', owner: 'KidzDigiLabz', repo: 'kdl-website' },
+	{ label: 'KDL – VR Rota', owner: 'KidzDigiLabz', repo: 'kdl-rota' },
+	{ label: 'KDL – XR Content', owner: 'KidzDigiLabz', repo: 'kdl-xr-content' }
+]
+function fillPresets(){
+	const sel=document.getElementById('ghPreset'); sel.innerHTML=''
+	PRESETS.forEach(p=>{ const o=document.createElement('option'); o.value=p.owner+'/'+p.repo; o.textContent=p.label; sel.appendChild(o) })
+}
+
+fillPresets();
 document.getElementById('ghToken').value = sessionStorage.getItem('kdl_gh_token')||''
 </script>
 </body></html>

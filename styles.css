@@ -57,19 +57,23 @@ header{
 .task{border:1px solid #e5e7eb;border-radius:12px;padding:10px;margin-bottom:10px;background:white;cursor:grab}
 .task:active{cursor:grabbing}
 @media (max-width:900px){ .grid{grid-template-columns:repeat(6,1fr)} }
-
-:root[data-theme="dark"]{
-	--bg:#0b1220;
-	--card:#0f172a;
-	--ink:#f8fafc;
-	--muted:#94a3b8;
-	--brand:#60a5ff;
-	--brand2:#a78bfa;
-	--leaf:#4ade80;
-	--tang:#fdba74;
-	--rose:#fb7185;
+/* v7 additions */
+.quick-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.quick-card{border:1px solid #e5e7eb;border-radius:14px;padding:14px;background:#fff;box-shadow:0 6px 20px rgba(30,144,255,.06)}
+.quick-card:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(30,144,255,.12)}
+.task .tag{margin-top:6px}
+.task .meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.task .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+/* Meetings calendar */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+.cal .cell{min-height:110px;border:1px solid #e5e7eb;border-radius:12px;padding:8px;background:#fff;position:relative}
+.cal .date{font-weight:800}
+.cal .event{margin-top:6px;font-size:12px;padding:4px 6px;border-radius:8px;background:rgba(124,58,237,.12)}
+.rsvp{display:inline-flex;align-items:center;gap:6px;margin-top:6px}
+/* Combined projects+updates calendar */
+.badge.project{background:rgba(124,58,237,.12);color:#5b21b6}
+/* brand back link */
+.brand-back{display:inline-block;margin-bottom:10px}
+@media (max-width:900px){
+	.quick-cards{grid-template-columns:1fr}
 }
-header{border-bottom-color:rgba(255,255,255,.12)}
-.card{border-color:rgba(255,255,255,.12)}
-.button{border-color:rgba(255,255,255,.12);background:transparent;color:var(--ink)}
-.button.primary{background:var(--brand);color:#0b1220;border-color:var(--brand)}

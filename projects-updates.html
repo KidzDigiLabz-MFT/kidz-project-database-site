@@ -1,0 +1,62 @@
+<!doctype html><html lang='en'><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
+<title>Kidz Digi Labz</title>
+</head><body>
+<header>
+	<div class="container nav">
+		<div class="left">
+			<a href="index.html"><img src="assets/logo.svg" alt="KDL logo"></a>
+			<nav>
+				<a href="index.html">Home</a>
+				<a href="projects-updates.html">Projects & Updates</a>
+				<a href="meetings.html">Meetings</a>
+				<a href="tasks.html">Tasks</a>
+				<a href="staff.html">Staff</a>
+				<a href="assets/brand/brand-guide.html">Brand</a>
+			</nav>
+		</div>
+	</div>
+</header>
+
+<section class="hero"><div class="container"><h1>Projects & Updates</h1><p>Browse updates and see task timelines on a calendar filtered by project.</p></div></section>
+<main class="container">
+	<section class="card">
+		<h2 class="section-title">Updates</h2>
+		<div id="feed"></div>
+	</section>
+	<section class="card">
+		<h2 class="section-title">Tasks Timeline</h2>
+		<div class="tabbar">
+			<select id="projFilter"><option value="">All projects</option></select>
+			<button class="button" id="importTasks">Import tasks JSON</button>
+		</div>
+		<div class="tabbar" style="margin-top:6px">
+			<button class="button" id="prev">&larr;</button>
+			<div id="title" style="font-weight:800"></div>
+			<button class="button" id="next">&rarr;</button>
+		</div>
+		<div class="cal" id="grid"></div>
+	</section>
+</main>
+<script>
+let posts=[], tasks={columns:['Backlog','In Progress','Review','Done'], tasks:[]}, month=new Date()
+async function loadPosts(){ posts = await fetch('data/posts.json').then(r=>r.json()); renderPosts() }
+async function loadTasks(){ tasks = await fetch('data/tasks.json').then(r=>r.json()).catch(()=>({columns:[],tasks:[]})); renderFilter(); renderCal() }
+function renderPosts(){ const wrap=document.getElementById('feed'); wrap.innerHTML=''; posts.sort((a,b)=>b.date.localeCompare(a.date)).forEach(p=>{ const div=document.createElement('div');div.className='card';div.innerHTML=`<div style="display:flex;justify-content:space-between"><strong>${p.title}</strong><span style="color:var(--muted)">${p.date}</span></div><p>${p.body}</p><p style="color:var(--muted);font-size:12px">By ${p.author}</p>`;wrap.appendChild(div) }) }
+function renderFilter(){ const sel=document.getElementById('projFilter'); const projects=[...new Set(tasks.tasks.map(t=>t.project).filter(Boolean))]; projects.forEach(p=>{ const o=document.createElement('option'); o.value=p; o.textContent=p; sel.appendChild(o)}) }
+function start(d){return new Date(d.getFullYear(), d.getMonth(), 1)}; function end(d){return new Date(d.getFullYear(), d.getMonth()+1, 0)}
+function renderCal(){ const grid=document.getElementById('grid'); grid.innerHTML=''; document.getElementById('title').textContent = month.toLocaleString('en-GB',{month:'long',year:'numeric'}); const s=start(month), e=end(month); const offset=(s.getDay()+6)%7; for(let i=0;i<offset;i++){ const c=document.createElement('div'); c.className='cell'; grid.appendChild(c) } const filter=document.getElementById('projFilter').value
+	for(let day=1; day<=e.getDate(); day++){ const d=new Date(month.getFullYear(), month.getMonth(), day); const cell=document.createElement('div'); cell.className='cell'; cell.innerHTML=`<div class='date'>${day}</div>`; const todays=tasks.tasks.filter(t=> t.start && t.end && (new Date(t.start) <= d && d <= new Date(t.end)) && (!filter || t.project===filter)); todays.forEach(t=>{ const b=document.createElement('div'); b.className='chip'; b.textContent = `${t.project||'General'}: ${t.title}`; cell.appendChild(b) }); grid.appendChild(cell) } }
+document.getElementById('importTasks').onclick=()=>{ const i=document.createElement('input'); i.type='file'; i.accept='application/json'; i.onchange=async(e)=>{const txt=await e.target.files[0].text(); tasks = JSON.parse(txt); document.getElementById('projFilter').innerHTML='<option value="">All projects</option>'; renderFilter(); renderCal()}; i.click() }
+document.getElementById('prev').onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1); renderCal()}
+document.getElementById('next').onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()+1,1); renderCal()}
+document.getElementById('projFilter').onchange=renderCal
+loadPosts(); loadTasks()
+</script>
+</body></html>

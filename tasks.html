@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <title>Kidz Digi Labz</title>
-<script src="theme.js"></script>
 </head><body>
 <header>
 	<div class="container nav">
@@ -20,7 +19,7 @@
 				<a href="tasks.html">Tasks</a>
 				<a href="staff.html">Staff</a>
 				<a href="assets/brand/brand-guide.html">Brand</a>
-			</nav><button class="button" data-theme-toggle style="margin-left:8px">🌙 Dark</button>
+			</nav>
 		</div>
 	</div>
 </header>
@@ -52,7 +51,8 @@ let state={columns:["Backlog","In Progress","Review","Done"],tasks:[
 	{id:"T-003",title:"Staff training pack v1",assignee:"KDL",status:"Backlog",priority:"Low",due:"2025-09-01",tags:["Training"]}
 ]}
 const board=document.getElementById('board')
-function render(){board.innerHTML='';state.columns.forEach(col=>{const wrap=document.createElement('div');wrap.className='column';wrap.dataset.col=col;wrap.innerHTML='<h3>'+col+'</h3><div class="col-body" data-drop="'+col+'"></div>';board.appendChild(wrap)});state.tasks.forEach(t=>addTaskCard(t));enableDnD()}
+function render(){
+	state.tasks.sort((a,b)=> (a.project||'').localeCompare(b.project||''));board.innerHTML='';state.columns.forEach(col=>{const wrap=document.createElement('div');wrap.className='column';wrap.dataset.col=col;wrap.innerHTML='<h3>'+col+'</h3><div class="col-body" data-drop="'+col+'"></div>';board.appendChild(wrap)});state.tasks.forEach(t=>addTaskCard(t));enableDnD()}
 function addTaskCard(t){const body=board.querySelector(`[data-drop="${t.status}"]`);if(!body)return;const el=document.createElement('div');el.className='task';el.draggable=true;el.dataset.id=t.id;el.innerHTML=`<div class="row" style="display:flex;justify-content:space-between;align-items:center"><strong>${t.title}</strong><span class="chip">${t.priority}</span></div><div class="row" style="color:var(--muted);font-size:14px;display:flex;justify-content:space-between"><span>${t.assignee||'—'}</span><span>${t.due||''}</span></div><div>${(t.tags||[]).map(x=>'<span class="chip">'+x+'</span>').join('')}</div><div class="row" style="margin-top:8px;display:flex;gap:8px"><button class="button" data-edit>Edit</button><button class="button" data-del>Delete</button></div>`;body.appendChild(el);el.querySelector('[data-del]').onclick=()=>{state.tasks=state.tasks.filter(x=>x.id!==t.id);persist();render()};el.querySelector('[data-edit]').onclick=()=>{const title=prompt('Title',t.title);if(title===null)return;const assignee=prompt('Assignee',t.assignee||'');if(assignee===null)return;const due=prompt('Due (YYYY-MM-DD)',t.due||'');if(due===null)return;const priority=prompt('Priority (Low|Medium|High)',t.priority||'');if(priority===null)return;const tags=prompt('Tags (comma)',(t.tags||[]).join(','));if(tags===null)return;Object.assign(t,{title,assignee,due,priority,tags:tags.split(',').map(s=>s.trim()).filter(Boolean)});persist();render()}}
 function enableDnD(){board.querySelectorAll('.task').forEach(card=>{card.addEventListener('dragstart', e=> e.dataTransfer.setData('text/plain', card.dataset.id))});board.querySelectorAll('[data-drop]').forEach(zone=>{zone.addEventListener('dragover', e=> e.preventDefault());zone.addEventListener('drop', e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain');const t=state.tasks.find(x=>x.id===id);if(t){t.status=zone.dataset.drop;persist();render()}})})}
 function persist(){localStorage.setItem('kdl_tasks', JSON.stringify(state))}

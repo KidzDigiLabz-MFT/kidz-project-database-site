@@ -1,0 +1,113 @@
+<!doctype html><html lang='en'><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
+<title>Kidz Digi Labz</title>
+</head><body>
+<header>
+	<div class="container nav">
+		<div class="left">
+			<a href="index.html"><img src="assets/logo.svg" alt="KDL logo"></a>
+			<nav>
+				<a href="index.html">Home</a>
+				<a href="projects-updates.html">Projects & Updates</a>
+				<a href="meetings.html">Meetings</a>
+				<a href="tasks.html">Tasks</a>
+				<a href="staff.html">Staff</a>
+				<a href="assets/brand/brand-guide.html">Brand</a>
+			</nav>
+		</div>
+	</div>
+</header>
+
+<section class="hero"><div class="container"><h1>Meetings</h1><p>Create meetings, see them on the calendar, RSVP, and (if staff) unlock Teams links.</p></div></section>
+<main class="container">
+	<section class="card">
+		<h2 class="section-title">Create a meeting</h2>
+		<div class="tabbar">
+			<input id="mTitle" placeholder="Title">
+			<input id="mDate" type="date">
+			<input id="mTime" type="time">
+			<input id="mId" placeholder="ID (e.g., meet-aug22)">
+			<input id="mNotes" placeholder="Notes (optional)">
+			<button class="button primary" id="addM">Add</button>
+			<button class="button" id="importM">Import JSON</button>
+			<button class="button" id="exportM">Export JSON</button>
+		</div>
+	</section>
+	<section class="card">
+		<h2 class="section-title">Calendar</h2>
+		<div class="tabbar">
+			<button class="button" id="prev">&larr;</button>
+			<div id="mtitle" style="font-weight:800"></div>
+			<button class="button" id="next">&rarr;</button>
+		</div>
+		<div class="cal" id="cal"></div>
+	</section>
+	<section class="card">
+		<h2 class="section-title">Staff-only Teams links</h2>
+		<p class="small" style="color:var(--muted)">Paste the encrypted links file, then unlock with the staff password to reveal “Join on Teams” buttons for matching meeting IDs.</p>
+		<div class="tabbar">
+			<button class="button" id="importEnc">Import Encrypted Links</button>
+			<input id="pwd" type="password" placeholder="Staff password">
+			<button class="button primary" id="unlock">Unlock Links</button>
+		</div>
+	</section>
+</main>
+<script>
+let meetings = JSON.parse(localStorage.getItem('kdl_meetings')||'[]')
+let month = new Date()
+let encBlob = null
+let teamsLinks = null
+const te=new TextEncoder(), td=new TextDecoder()
+async function deriveKey(pw,salt){const base=await crypto.subtle.importKey('raw',te.encode(pw),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:120000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+async function dec(pw,blob){const iv=new Uint8Array(blob.iv),salt=new Uint8Array(blob.salt),ct=new Uint8Array(blob.ct);const key=await deriveKey(pw,salt);const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);return JSON.parse(td.decode(pt))}
+function save(){localStorage.setItem('kdl_meetings', JSON.stringify(meetings))}
+function start(d){return new Date(d.getFullYear(), d.getMonth(), 1)}
+function end(d){return new Date(d.getFullYear(), d.getMonth()+1, 0)}
+function render(){
+	document.getElementById('mtitle').textContent = month.toLocaleString('en-GB', {month:'long', year:'numeric'})
+	const grid = document.getElementById('cal'); grid.innerHTML = ''
+	const s = start(month), e=end(month); const offset=(s.getDay()+6)%7
+	for(let i=0;i<offset;i++){ const c=document.createElement('div'); c.className='cell'; grid.appendChild(c) }
+	for(let day=1; day<=e.getDate(); day++){
+		const d=new Date(month.getFullYear(), month.getMonth(), day)
+		const cell=document.createElement('div'); cell.className='cell'
+		cell.innerHTML = `<div class="date">${day}</div>`
+		const todays = meetings.filter(m=>m.date === d.toISOString().slice(0,10))
+		todays.forEach(m=>{
+			const ev=document.createElement('div'); ev.className='event'; ev.innerHTML = `<strong>${m.title}</strong><div style='font-size:11px;color:var(--muted)'>${m.time||''}</div>`
+			const rsvp=document.createElement('div'); rsvp.className='rsvp'
+			const btn=document.createElement('button'); btn.className='button'; btn.textContent = 'I\'m attending'
+			btn.onclick=()=>{ m.attending=(m.attending||0)+1; save(); render() }
+			const count=document.createElement('span'); count.textContent = (m.attending||0)+' attending'
+			rsvp.appendChild(btn); rsvp.appendChild(count); ev.appendChild(rsvp)
+			if(teamsLinks && teamsLinks[m.id]){ const join=document.createElement('a'); join.className='button'; join.textContent='Join on Teams'; join.href=teamsLinks[m.id]; join.target='_blank'; ev.appendChild(join) } else { const lock=document.createElement('span'); lock.style='margin-left:6px;color:var(--muted);font-size:12px'; lock.textContent='Staff link locked'; ev.appendChild(lock) }
+			cell.appendChild(ev)
+		})
+		grid.appendChild(cell)
+	}
+}
+document.getElementById('addM').onclick=()=>{
+	const title=document.getElementById('mTitle').value||'Untitled Meeting'
+	const date=document.getElementById('mDate').value
+	const time=document.getElementById('mTime').value
+	const id=document.getElementById('mId').value||('meet-' + Math.random().toString(36).slice(2,7))
+	const notes=document.getElementById('mNotes').value||''
+	if(!date) return alert('Choose a date')
+	meetings.push({id,title,date,time,notes})
+	save(); render()
+}
+document.getElementById('prev').onclick=()=>{month=new Date(month.getFullYear(), month.getMonth()-1, 1); render()}
+document.getElementById('next').onclick=()=>{month=new Date(month.getFullYear(), month.getMonth()+1, 1); render()}
+document.getElementById('exportM').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(meetings,null,2)],{type:'application/json'}));a.download='meetings.json';a.click();URL.revokeObjectURL(a.href)}
+document.getElementById('importM').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='application/json';i.onchange=async(e)=>{const txt=await e.target.files[0].text();meetings=JSON.parse(txt);save();render()};i.click()}
+document.getElementById('importEnc').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='application/json';i.onchange=async(e)=>{const txt=await e.target.files[0].text();encBlob=JSON.parse(txt);alert('Encrypted links loaded. Enter password and unlock.')};i.click()}
+document.getElementById('unlock').onclick=async()=>{if(!encBlob) return alert('Import encrypted links first'); const pw=document.getElementById('pwd').value; if(!pw) return alert('Enter password'); try{ teamsLinks = await dec(pw, encBlob); render(); alert('Links unlocked.')}catch(e){ alert('Wrong password or corrupted file') }}
+render()
+</script>
+</body></html>

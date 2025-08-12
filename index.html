@@ -5,8 +5,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
 <title>Kidz Digi Labz</title>
-<script src="theme.js"></script>
 </head><body>
 <header>
 	<div class="container nav">
@@ -14,13 +14,12 @@
 			<a href="index.html"><img src="assets/logo.svg" alt="KDL logo"></a>
 			<nav>
 				<a href="index.html">Home</a>
-				<a href="projects.html">Projects</a>
-				<a href="calendar.html">Calendar</a>
-				<a href="updates.html">Updates</a>
+				<a href="projects-updates.html">Projects & Updates</a>
+				<a href="meetings.html">Meetings</a>
 				<a href="tasks.html">Tasks</a>
 				<a href="staff.html">Staff</a>
 				<a href="assets/brand/brand-guide.html">Brand</a>
-			</nav><button class="button" data-theme-toggle style="margin-left:8px">🌙 Dark</button>
+			</nav>
 		</div>
 	</div>
 </header>
@@ -29,32 +28,53 @@
 	<div class="container">
 		<span class="badge">Kidz Digi Labz</span>
 		<h1>Helping kids feel brave with XR.</h1>
-		<p>This hub keeps teams aligned—status, events, updates and tools—wrapped in a friendly, colorful package for a children’s hospital context.</p>
+		<p>Colorful, professional hub for status, meetings, updates and tools.</p>
 		<div class="kidbar"><div class="kiddot"></div><div class="kiddot"></div><div class="kiddot"></div><div class="kiddot"></div></div>
 	</div>
 </section>
 <main class="container">
 	<div class="grid">
 		<section class="card" style="grid-column:span 7">
-			<h2 class="section-title">Who we are</h2>
-			<p><strong>Kidz Digi Labz</strong> prototypes XR experiences, supports ward teams, and makes hospital days feel a little brighter.</p>
-			<div class="chips">
-				<span class="chip">XR</span><span class="chip">Play</span><span class="chip">Patient Experience</span><span class="chip">Therapies</span>
+			<h2 class="section-title">Quick links</h2>
+			<div class="quick-cards">
+				<a class="quick-card" href="projects-updates.html"><strong>Projects & Updates</strong><p style='color:var(--muted)'>See status, news, and timelines in one place.</p></a>
+				<a class="quick-card" href="meetings.html"><strong>Meetings</strong><p style='color:var(--muted)'>Find dates and RSVP. Staff can unlock Teams links.</p></a>
+				<a class="quick-card" href="tasks.html"><strong>Task Board</strong><p style='color:var(--muted)'>Kanban, grouped by project.</p></a>
 			</div>
 		</section>
 		<section class="card" style="grid-column:span 5">
-			<h2 class="section-title">Quick links</h2>
-			<div class="tabbar">
-				<a class="button" href="projects.html">Projects</a>
-				<a class="button" href="calendar.html">Calendar</a>
-				<a class="button" href="updates.html">Updates</a>
-				<a class="button" href="tasks.html">Task Tracker</a>
-				<a class="button" href="staff.html">Staff Area</a>
-				<a class="button" href="assets/brand/brand-guide.html">Brand Guide</a>
-			</div>
+			<h2 class="section-title">This week</h2>
+			<p>Fast highlights from the latest newsletter.</p>
+			<div id="thisWeek"></div>
+		</section>
+		<section class="card" style="grid-column:span 12">
+			<h2 class="section-title">Blog • Weekly Newsletters</h2>
+			<p>We publish a weekly newsletter. Browse recent issues stored in <code>/assets/newsletters</code>.</p>
+			<div id="blogList" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
 		</section>
 	</div>
 </main>
 <footer class="footer"><div class="container"><p>&copy; <span id="year"></span> Kidz Digi Labz</p></div></footer>
-<script>document.getElementById('year').textContent=new Date().getFullYear()</script>
+<script>
+document.getElementById('year').textContent = new Date().getFullYear()
+// Load newsletters by listing a known index (in a static site we simulate by fetching an index json if exists)
+async function loadNews(){
+	let list = []
+	try{ list = await fetch('assets/newsletters/index.json').then(r=>r.json()) }catch(e){
+		// fallback: show samples
+		list = ['2025-08-15-weekly.html','2025-08-08-weekly.html']
+	}
+	const wrap = document.getElementById('blogList')
+	wrap.innerHTML=''
+	list.sort().reverse().forEach(name=>{
+		const card = document.createElement('a'); card.className='quick-card'; card.href = 'assets/newsletters/'+name; card.target='_blank'
+		card.innerHTML = `<strong>${name.replace('.html','').replaceAll('-',' / ')}</strong><p style='color:var(--muted)'>Open newsletter</p>`
+		wrap.appendChild(card)
+	})
+	// This week highlight: load most recent
+	const latest = list.sort().reverse()[0]
+	if(latest){ const html = await fetch('assets/newsletters/'+latest).then(r=>r.text()); document.getElementById('thisWeek').innerHTML = html }
+}
+loadNews()
+</script>
 </body></html>
