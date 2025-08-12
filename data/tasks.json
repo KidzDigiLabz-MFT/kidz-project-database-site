@@ -8,29 +8,29 @@
   "tasks": [
     {
       "id": "T-001",
-      "title": "Rota parser prototype",
+      "title": "Website Prototype",
       "assignee": "Ben",
       "status": "In Progress",
       "priority": "High",
-      "due": "2025-08-18",
-      "project": "Ops/Automation",
+      "due": "2025-08-24",
+      "project": "WebDev/Intranet",
       "start": "2025-08-12",
-      "end": "2025-08-19",
+      "end": "2025-08-24",
       "tags": [
-        "Ops",
-        "Automation"
+        "Dev",
+        "Utility"
       ]
     },
     {
       "id": "T-002",
-      "title": "XR content shortlist",
-      "assignee": "Play Team",
-      "status": "Review",
+      "title": "XR Development Project Meta",
+      "assignee": "Ben",
+      "status": "Backlog",
       "priority": "Medium",
-      "due": "2025-08-20",
+      "due": "2025-09-13",
       "project": "XR Pilot",
-      "start": "2025-08-10",
-      "end": "2025-08-20",
+      "start": "2025-08-25",
+      "end": "2025-09-13",
       "tags": [
         "XR",
         "Content"
@@ -38,16 +38,16 @@
     },
     {
       "id": "T-003",
-      "title": "Staff training pack v1",
-      "assignee": "KDL",
+      "title": "Marketing And Finance Documentation",
+      "assignee": "Ben",
       "status": "Backlog",
       "priority": "Low",
-      "due": "2025-09-01",
+      "due": "2025-10-01",
       "project": "Training",
-      "start": "2025-08-20",
-      "end": "2025-08-31",
+      "start": "2025-09-13",
+      "end": "2025-09-31",
       "tags": [
-        "Training"
+        "Finance"
       ]
     }
   ]
