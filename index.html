@@ -27,15 +27,14 @@
 <section class="hero">
 	<div class="container">
 		<span class="badge">Kidz Digi Labz</span>
-		<h1>Helping kids feel brave with XR.</h1>
-		<p>Colorful, professional hub for status, meetings, updates and tools.</p>
+		<h1>Using technology to support children's healthcare.</h1>
 		<div class="kidbar"><div class="kiddot"></div><div class="kiddot"></div><div class="kiddot"></div><div class="kiddot"></div></div>
 	</div>
 </section>
 <main class="container">
 	<div class="grid">
 		<section class="card" style="grid-column:span 7">
-			<h2 class="section-title">Quick links</h2>
+			<h2 class="section-title">Quick Links</h2>
 			<div class="quick-cards">
 				<a class="quick-card" href="projects-updates.html"><strong>Projects & Updates</strong><p style='color:var(--muted)'>See status, news, and timelines in one place.</p></a>
 				<a class="quick-card" href="meetings.html"><strong>Meetings</strong><p style='color:var(--muted)'>Find dates and RSVP. Staff can unlock Teams links.</p></a>
@@ -43,13 +42,13 @@
 			</div>
 		</section>
 		<section class="card" style="grid-column:span 5">
-			<h2 class="section-title">This week</h2>
+			<h2 class="section-title">This Week</h2>
 			<p>Fast highlights from the latest newsletter.</p>
 			<div id="thisWeek"></div>
 		</section>
 		<section class="card" style="grid-column:span 12">
 			<h2 class="section-title">Blog • Weekly Newsletters</h2>
-			<p>We publish a weekly newsletter. Browse recent issues stored in <code>/assets/newsletters</code>.</p>
+			<p>View our weekly newsletters here</p>
 			<div id="blogList" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
 		</section>
 	</div>
@@ -61,8 +60,6 @@ document.getElementById('year').textContent = new Date().getFullYear()
 async function loadNews(){
 	let list = []
 	try{ list = await fetch('assets/newsletters/index.json').then(r=>r.json()) }catch(e){
-		// fallback: show samples
-		list = ['2025-08-15-weekly.html','2025-08-08-weekly.html']
 	}
 	const wrap = document.getElementById('blogList')
 	wrap.innerHTML=''
