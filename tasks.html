@@ -1,0 +1,67 @@
+<!doctype html><html lang='en'><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>Kidz Digi Labz</title>
+<script src="theme.js"></script>
+</head><body>
+<header>
+	<div class="container nav">
+		<div class="left">
+			<a href="index.html"><img src="assets/logo.svg" alt="KDL logo"></a>
+			<nav>
+				<a href="index.html">Home</a>
+				<a href="projects.html">Projects</a>
+				<a href="calendar.html">Calendar</a>
+				<a href="updates.html">Updates</a>
+				<a href="tasks.html">Tasks</a>
+				<a href="staff.html">Staff</a>
+				<a href="assets/brand/brand-guide.html">Brand</a>
+			</nav><button class="button" data-theme-toggle style="margin-left:8px">🌙 Dark</button>
+		</div>
+	</div>
+</header>
+
+<section class="hero">
+	<div class="container"><h1>Task Tracker</h1><p>Drag tasks between columns. Use Import/Export to share JSON snapshots.</p></div>
+</section>
+<main class="container">
+	<section class="card">
+		<div class="tabbar">
+			<input id="newTitle" placeholder="New task title">
+			<input id="newAssignee" placeholder="Assignee">
+			<select id="newStatus"><option>Backlog</option><option>In Progress</option><option>Review</option><option>Done</option></select>
+			<select id="newPriority"><option>Low</option><option>Medium</option><option>High</option></select>
+			<input id="newDue" type="date">
+			<input id="newTags" placeholder="tags (comma)">
+			<button class="button primary" id="addTask">Add Task</button>
+			<button class="button" id="importTasks">Import</button>
+			<button class="button" id="exportTasks">Export</button>
+		</div>
+	</section>
+	<section class="kanban" id="board"></section>
+</main>
+<input type="file" id="taskFile" accept="application/json" style="display:none">
+<script>
+let state={columns:["Backlog","In Progress","Review","Done"],tasks:[
+	{id:"T-001",title:"Rota parser prototype",assignee:"Ben",status:"In Progress",priority:"High",due:"2025-08-18",tags:["Ops","Automation"]},
+	{id:"T-002",title:"XR content shortlist",assignee:"Play Team",status:"Review",priority:"Medium",due:"2025-08-20",tags:["XR","Content"]},
+	{id:"T-003",title:"Staff training pack v1",assignee:"KDL",status:"Backlog",priority:"Low",due:"2025-09-01",tags:["Training"]}
+]}
+const board=document.getElementById('board')
+function render(){board.innerHTML='';state.columns.forEach(col=>{const wrap=document.createElement('div');wrap.className='column';wrap.dataset.col=col;wrap.innerHTML='<h3>'+col+'</h3><div class="col-body" data-drop="'+col+'"></div>';board.appendChild(wrap)});state.tasks.forEach(t=>addTaskCard(t));enableDnD()}
+function addTaskCard(t){const body=board.querySelector(`[data-drop="${t.status}"]`);if(!body)return;const el=document.createElement('div');el.className='task';el.draggable=true;el.dataset.id=t.id;el.innerHTML=`<div class="row" style="display:flex;justify-content:space-between;align-items:center"><strong>${t.title}</strong><span class="chip">${t.priority}</span></div><div class="row" style="color:var(--muted);font-size:14px;display:flex;justify-content:space-between"><span>${t.assignee||'—'}</span><span>${t.due||''}</span></div><div>${(t.tags||[]).map(x=>'<span class="chip">'+x+'</span>').join('')}</div><div class="row" style="margin-top:8px;display:flex;gap:8px"><button class="button" data-edit>Edit</button><button class="button" data-del>Delete</button></div>`;body.appendChild(el);el.querySelector('[data-del]').onclick=()=>{state.tasks=state.tasks.filter(x=>x.id!==t.id);persist();render()};el.querySelector('[data-edit]').onclick=()=>{const title=prompt('Title',t.title);if(title===null)return;const assignee=prompt('Assignee',t.assignee||'');if(assignee===null)return;const due=prompt('Due (YYYY-MM-DD)',t.due||'');if(due===null)return;const priority=prompt('Priority (Low|Medium|High)',t.priority||'');if(priority===null)return;const tags=prompt('Tags (comma)',(t.tags||[]).join(','));if(tags===null)return;Object.assign(t,{title,assignee,due,priority,tags:tags.split(',').map(s=>s.trim()).filter(Boolean)});persist();render()}}
+function enableDnD(){board.querySelectorAll('.task').forEach(card=>{card.addEventListener('dragstart', e=> e.dataTransfer.setData('text/plain', card.dataset.id))});board.querySelectorAll('[data-drop]').forEach(zone=>{zone.addEventListener('dragover', e=> e.preventDefault());zone.addEventListener('drop', e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain');const t=state.tasks.find(x=>x.id===id);if(t){t.status=zone.dataset.drop;persist();render()}})})}
+function persist(){localStorage.setItem('kdl_tasks', JSON.stringify(state))}
+function loadPersisted(){const raw=localStorage.getItem('kdl_tasks'); if(!raw) return false; try{state=JSON.parse(raw);return true}catch(e){return false}}
+function uid(){return 'T-'+Math.random().toString(36).slice(2,7).toUpperCase()}
+document.getElementById('addTask').onclick=()=>{const t={id:uid(),title:document.getElementById('newTitle').value||'Untitled task',assignee:document.getElementById('newAssignee').value||'',status:document.getElementById('newStatus').value,priority:document.getElementById('newPriority').value,due:document.getElementById('newDue').value||'',tags:(document.getElementById('newTags').value||'').split(',').map(s=>s.trim()).filter(Boolean)};state.tasks.push(t);persist();render()}
+document.getElementById('exportTasks').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tasks.json';a.click();URL.revokeObjectURL(a.href)}
+document.getElementById('importTasks').onclick=()=>document.getElementById('taskFile').click()
+document.getElementById('taskFile').onchange=async(e)=>{const text=await e.target.files[0].text();try{state=JSON.parse(text);persist();render();alert('Tasks imported.')}catch{alert('Invalid JSON.')}}
+(function init(){if(!loadPersisted()) persist(); render()})()
+</script>
+</body></html>

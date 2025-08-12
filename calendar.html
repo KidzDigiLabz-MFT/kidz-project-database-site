@@ -1,0 +1,53 @@
+<!doctype html><html lang='en'><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>Kidz Digi Labz</title>
+<script src="theme.js"></script>
+</head><body>
+<header>
+	<div class="container nav">
+		<div class="left">
+			<a href="index.html"><img src="assets/logo.svg" alt="KDL logo"></a>
+			<nav>
+				<a href="index.html">Home</a>
+				<a href="projects.html">Projects</a>
+				<a href="calendar.html">Calendar</a>
+				<a href="updates.html">Updates</a>
+				<a href="tasks.html">Tasks</a>
+				<a href="staff.html">Staff</a>
+				<a href="assets/brand/brand-guide.html">Brand</a>
+			</nav><button class="button" data-theme-toggle style="margin-left:8px">🌙 Dark</button>
+		</div>
+	</div>
+</header>
+
+<section class="hero"><div class="container"><h1>Calendar</h1><p>Events from JSON now, ready to hook into rota imports later.</p></div></section>
+<main class="container">
+	<section class="card">
+		<div style="display:flex;justify-content:space-between;align-items:center">
+			<div class="tabbar">
+				<button class="button" id="prev">&larr;</button>
+				<button class="button" id="next">&rarr;</button>
+			</div>
+			<div id="title" style="font-weight:800"></div>
+			<button class="button" id="import">Import JSON</button>
+		</div>
+		<div class="grid" id="grid" style="margin-top:12px"></div>
+	</section>
+</main>
+<script>
+let events=[]; let cur=new Date(); const grid=document.getElementById('grid')
+function start(d){return new Date(d.getFullYear(),d.getMonth(),1)}
+function end(d){return new Date(d.getFullYear(),d.getMonth()+1,0)}
+function render(){document.getElementById('title').textContent=cur.toLocaleString('en-GB',{month:'long',year:'numeric'});grid.innerHTML='';const s=start(cur),e=end(cur);const offset=(s.getDay()+6)%7;for(let i=0;i<offset;i++){const c=document.createElement('div');c.className='card';c.style.minHeight='90px';grid.appendChild(c)};for(let day=1;day<=e.getDate();day++){const d=new Date(cur.getFullYear(),cur.getMonth(),day);const c=document.createElement('div');c.className='card';c.style.minHeight='90px';c.innerHTML=`<div style="font-weight:800">${day}</div>`;const todays=events.filter(ev=>ev.date===d.toISOString().slice(0,10));if(todays.length){todays.forEach(t=>{const b=document.createElement('div');b.className='chip';b.textContent=t.title;c.appendChild(b)})}grid.appendChild(c)}}
+async function loadLocal(){events=await fetch('data/events.json').then(r=>r.json());render()}
+document.getElementById('prev').onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);render()}
+document.getElementById('next').onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);render()}
+document.getElementById('import').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='application/json';i.onchange=async(e)=>{const t=await e.target.files[0].text();const obj=JSON.parse(t);events=obj.events||obj;render()};i.click()}
+loadLocal()
+</script>
+</body></html>

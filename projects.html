@@ -1,0 +1,52 @@
+<!doctype html><html lang='en'><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>Kidz Digi Labz</title>
+<script src="theme.js"></script>
+</head><body>
+<header>
+	<div class="container nav">
+		<div class="left">
+			<a href="index.html"><img src="assets/logo.svg" alt="KDL logo"></a>
+			<nav>
+				<a href="index.html">Home</a>
+				<a href="projects.html">Projects</a>
+				<a href="calendar.html">Calendar</a>
+				<a href="updates.html">Updates</a>
+				<a href="tasks.html">Tasks</a>
+				<a href="staff.html">Staff</a>
+				<a href="assets/brand/brand-guide.html">Brand</a>
+			</nav><button class="button" data-theme-toggle style="margin-left:8px">🌙 Dark</button>
+		</div>
+	</div>
+</header>
+
+<section class="hero"><div class="container"><h1>Projects</h1><p>Status at a glance, with tags and milestones.</p></div></section>
+<main class="container">
+	<section class="card">
+		<div style="display:flex;justify-content:space-between;align-items:center">
+			<div class="tabbar">
+				<button class="button" id="loadLocal">Use Local Data</button>
+				<button class="button" id="importJSON">Import JSON</button>
+			</div>
+			<div style="min-width:240px">
+				<div class="progress"><i id="overall" style="width:0%"></i></div>
+				<p id="summary" style="margin:6px 0;color:var(--muted)">Loading...</p>
+			</div>
+		</div>
+		<div id="list" style="margin-top:12px"></div>
+	</section>
+</main>
+<script>
+const el=(s)=>document.querySelector(s); let projects=[]
+async function loadLocal(){projects=await fetch('data/projects.json').then(r=>r.json());render()}
+function render(){const list=el('#list');list.innerHTML='';projects.forEach(p=>{const done=(p.milestones||[]).filter(m=>m.done).length;const total=(p.milestones||[]).length||1;const pct=Math.round(done/total*100);const card=document.createElement('div');card.className='card';card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap"><div style="flex:1"><h3 style="margin:0 0 6px">${p.title}</h3><p style="margin:0;color:var(--muted)">${p.summary||''}</p><div class="chips" style="margin-top:8px">${(p.tags||[]).map(t=>`<span class='chip'>${t}</span>`).join('')}</div></div><div style="min-width:220px"><div class="progress"><i style="width:${pct}%"></i></div><p style="margin:6px 0;color:var(--muted)">${done}/${total} milestones</p></div></div>`;list.appendChild(card)});const milestones=projects.flatMap(p=>p.milestones||[]);const total=milestones.length||1;const done=milestones.filter(m=>m.done).length;const pct=Math.round(done/total*100);el('#overall').style.width=pct+'%';el('#summary').textContent=`${done}/${total} milestones complete (${pct}%)`}
+document.getElementById('loadLocal').onclick=loadLocal
+document.getElementById('importJSON').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='application/json';i.onchange=async(e)=>{const t=await e.target.files[0].text();const obj=JSON.parse(t);projects=obj.projects||obj;render()};i.click()}
+loadLocal()
+</script>
+</body></html>

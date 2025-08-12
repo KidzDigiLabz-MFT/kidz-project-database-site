@@ -1,0 +1,26 @@
+[
+  {
+    "id": "xr-anxiety-relief",
+    "title": "XR Anxiety Relief Pilot",
+    "owner": "KDL",
+    "status": "In Progress",
+    "summary": "VR experiences for distraction during minor procedures.",
+    "milestones": [
+      {
+        "name": "Content shortlist",
+        "due": "2025-08-20",
+        "done": true
+      },
+      {
+        "name": "Pilot protocol",
+        "due": "2025-09-05",
+        "done": false
+      }
+    ],
+    "tags": [
+      "VR",
+      "Play",
+      "Patient Experience"
+    ]
+  }
+]

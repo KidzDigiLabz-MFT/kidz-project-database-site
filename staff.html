@@ -1,0 +1,93 @@
+<!doctype html><html lang='en'><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>Kidz Digi Labz</title>
+<script src="theme.js"></script>
+</head><body>
+<header>
+	<div class="container nav">
+		<div class="left">
+			<a href="index.html"><img src="assets/logo.svg" alt="KDL logo"></a>
+			<nav>
+				<a href="index.html">Home</a>
+				<a href="projects.html">Projects</a>
+				<a href="calendar.html">Calendar</a>
+				<a href="updates.html">Updates</a>
+				<a href="tasks.html">Tasks</a>
+				<a href="staff.html">Staff</a>
+				<a href="assets/brand/brand-guide.html">Brand</a>
+			</nav><button class="button" data-theme-toggle style="margin-left:8px">🌙 Dark</button>
+		</div>
+	</div>
+</header>
+
+<section class="hero" style="border-radius:16px;margin-top:16px">
+	<div class="container"><h1>Staff Area</h1><p>Private tools and GitHub browser. Data here can be encrypted locally with your staff password.</p></div>
+</section>
+<main class="container">
+	<section class="card">
+		<h2 class="section-title">Unlock Private Tracker</h2>
+		<div class="tabbar">
+			<input id="pwd" type="password" placeholder="Enter staff password" style="min-width:240px">
+			<button class="button primary" id="unlock">Unlock</button>
+			<button class="button" id="wipe">Wipe Local Encrypted Data</button>
+		</div>
+		<div id="priv" style="display:none;margin-top:12px">
+			<div class="tabbar">
+				<input id="ptTitle" placeholder="Task title">
+				<input id="ptOwner" placeholder="Owner">
+				<input id="ptDue" type="date">
+				<select id="ptStatus"><option>Planned</option><option>Active</option><option>Blocked</option><option>Done</option></select>
+				<button class="button primary" id="addPT">Add</button>
+				<button class="button" id="exportEnc">Export Encrypted</button>
+			</div>
+			<div id="ptList" style="margin-top:12px"></div>
+		</div>
+	</section>
+
+	<section class="card">
+		<h2 class="section-title">GitHub Browser</h2>
+		<p class="small" style="color:var(--muted)">Use a GitHub Personal Access Token (classic) with read access. Token is stored in session only.</p>
+		<div class="tabbar">
+			<input id="ghToken" placeholder="GitHub token" style="min-width:280px">
+			<input id="ghOwner" placeholder="owner/org" value="KidzDigiLabz">
+			<input id="ghRepo" placeholder="repo">
+			<input id="ghBranch" placeholder="branch (default: main)">
+			<input id="ghPath" placeholder="path (e.g., /)" value="/">
+			<button class="button primary" id="ghList">List</button>
+		</div>
+		<div id="ghOut" style="margin-top:12px"></div>
+	</section>
+</main>
+<script>
+// Crypto for local encrypted tracker
+const te=new TextEncoder(), td=new TextDecoder()
+async function deriveKey(pw,salt){const base=await crypto.subtle.importKey('raw',te.encode(pw),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:120000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+async function enc(pw,obj){const iv=crypto.getRandomValues(new Uint8Array(12)),salt=crypto.getRandomValues(new Uint8Array(16));const key=await deriveKey(pw,salt);const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,te.encode(JSON.stringify(obj)));return {iv:[...iv],salt:[...salt],ct:[...new Uint8Array(ct)]}}
+async function dec(pw,blob){const iv=new Uint8Array(blob.iv),salt=new Uint8Array(blob.salt),ct=new Uint8Array(blob.ct);const key=await deriveKey(pw,salt);const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);return JSON.parse(td.decode(pt))}
+let PASSWORD=null, staffData={tracker:[]}; const KEY='kdl_staff_enc'
+function renderPT(){const wrap=document.getElementById('ptList');wrap.innerHTML='';staffData.tracker.forEach((t,i)=>{const d=document.createElement('div');d.className='post';d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><strong>${t.title}</strong><span style="color:var(--muted)">${t.due||''}</span></div><p style="margin:6px 0;color:var(--muted)">${t.owner||''} • ${t.status||''}</p><div class="tabbar"><button class="button" data-e>Edit</button><button class="button" data-d>Delete</button></div>`;d.querySelector('[data-d]').onclick=async()=>{staffData.tracker.splice(i,1);await save();renderPT()};d.querySelector('[data-e]').onclick=async()=>{const title=prompt('Title',t.title);if(title===null)return;const owner=prompt('Owner',t.owner||'');if(owner===null)return;const due=prompt('Due (YYYY-MM-DD)',t.due||'');if(due===null)return;const status=prompt('Status',t.status||'');if(status===null)return;Object.assign(t,{title,owner,due,status});await save();renderPT()};wrap.appendChild(d)})}
+async function save(){if(!PASSWORD)return;const blob=await enc(PASSWORD,staffData);localStorage.setItem(KEY,JSON.stringify(blob))}
+async function load(pw){const raw=localStorage.getItem(KEY);if(!raw){staffData={tracker:[]};return true}try{staffData=await dec(pw,JSON.parse(raw));return true}catch{return false}}
+document.getElementById('unlock').onclick=async()=>{const pw=document.getElementById('pwd').value;if(!pw)return alert('Enter password');const ok=await load(pw);if(!ok)return alert('Wrong password or corrupted data');PASSWORD=pw;document.getElementById('priv').style.display='block';renderPT()}
+document.getElementById('addPT').onclick=async()=>{staffData.tracker.push({title:document.getElementById('ptTitle').value||'Untitled',owner:document.getElementById('ptOwner').value||'',due:document.getElementById('ptDue').value||'',status:document.getElementById('ptStatus').value});await save();renderPT()}
+document.getElementById('exportEnc').onclick=()=>{const raw=localStorage.getItem(KEY)||'{}';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([raw],{type:'application/json'}));a.download='kdl-staff-encrypted.json';a.click();URL.revokeObjectURL(a.href)}
+document.getElementById('wipe').onclick=()=>{if(confirm('Wipe encrypted staff data from this browser?')){localStorage.removeItem(KEY);location.reload()}}
+
+// GitHub browser
+function ghHeaders(){const t=sessionStorage.getItem('kdl_gh_token')||'';const h={'Accept':'application/vnd.github+json'};if(t)h['Authorization']='Bearer '+t;return h}
+function saveToken(v){sessionStorage.setItem('kdl_gh_token',v)}
+async function listContents(owner,repo,branch,path){const ref=branch?`?ref=${encodeURIComponent(branch)}`:'';const url=`https://api.github.com/repos/${owner}/${repo}/contents${path}${ref}`;const r=await fetch(url,{headers:ghHeaders()});if(!r.ok)throw new Error('GitHub error '+r.status);return r.json()}
+function renderList(items, owner, repo, branch, curPath){const out=document.getElementById('ghOut');out.innerHTML='';const back=curPath!=='/'?curPath.replace(/\/?[^\/]+\/?$/,'/'):'/';const upBtn=document.createElement('button');upBtn.className='button';upBtn.textContent='⬆ Up';upBtn.onclick=()=>browse(owner,repo,branch,back);out.appendChild(upBtn);items.forEach(it=>{const row=document.createElement('div');row.className='card';row.style.display='flex';row.style.justifyContent='space-between';row.style.alignItems='center';row.style.marginTop='8px';row.innerHTML=`<div><strong>${it.name}</strong><div style='color:var(--muted);font-size:12px'>${it.type}</div></div>`;const actions=document.createElement('div');actions.className='tabbar';if(it.type==='dir'){const open=document.createElement('button');open.className='button';open.textContent='Open';open.onclick=()=>browse(owner,repo,branch,(curPath==='/'?'':'') + '/' + it.name).replace('//','/');actions.appendChild(open)} else {const view=document.createElement('button');view.className='button';view.textContent='Preview';view.onclick=()=>previewFile(owner,repo,branch,curPath, it.name);const dl=document.createElement('button');dl.className='button';dl.textContent='Download';dl.onclick=()=>downloadFile(owner,repo,branch,curPath, it.name);actions.appendChild(view);actions.appendChild(dl)}row.appendChild(actions);out.appendChild(row)})}
+async function browse(owner,repo,branch,path){path=path||'/';if(path!=='/'&&path.endsWith('/'))path=path.slice(0,-1);document.getElementById('ghPath').value=path||'/';try{const items=await listContents(owner,repo,branch,path||'/');renderList(items,owner,repo,branch,path||'/')}catch(e){alert(e.message)}}
+async function fetchFile(owner,repo,branch,path,name){const ref=branch?`?ref=${encodeURIComponent(branch)}`:'';const full=(path==='/'?'':path)+'/'+name;const url=`https://api.github.com/repos/${owner}/${repo}/contents${full}${ref}`;const r=await fetch(url,{headers:ghHeaders()});if(!r.ok)throw new Error('GitHub error '+r.status);return r.json()}
+async function previewFile(owner,repo,branch,path,name){try{const meta=await fetchFile(owner,repo,branch,path,name);const out=document.getElementById('ghOut');const card=document.createElement('div');card.className='card';card.style.marginTop='8px';if(meta.encoding==='base64'){const bytes=Uint8Array.from(atob(meta.content.replace(/\n/g,'')), c=>c.charCodeAt(0));const blob=new Blob([bytes]);const url=URL.createObjectURL(blob);let el; if(/\.(png|jpg|jpeg|gif|webp|svg)$/i.test(name)){el=document.createElement('img');el.src=url;el.style.maxWidth='100%'} else if(/\.(mp4|webm|ogg)$/i.test(name)){el=document.createElement('video');el.controls=true;el.src=url;el.style.maxWidth='100%'} else if(/\.(pdf)$/i.test(name)){el=document.createElement('iframe');el.src=url;el.style.width='100%';el.style.height='480px'} else {el=document.createElement('pre');el.textContent=new TextDecoder().decode(bytes).slice(0,20000)} card.appendChild(el) } else {card.textContent='Unable to preview this file.'} out.appendChild(card) }catch(e){alert(e.message)}}
+async function downloadFile(owner,repo,branch,path,name){try{const meta=await fetchFile(owner,repo,branch,path,name);const bytes=Uint8Array.from(atob(meta.content.replace(/\n/g,'')), c=>c.charCodeAt(0));const blob=new Blob([bytes]);const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}catch(e){alert(e.message)}}
+document.getElementById('ghList').onclick=()=>{const token=document.getElementById('ghToken').value; if(token) saveToken(token); const owner=document.getElementById('ghOwner').value; const repo=document.getElementById('ghRepo').value; const branch=document.getElementById('ghBranch').value; const path=document.getElementById('ghPath').value||'/'; browse(owner,repo,branch,path)}
+document.getElementById('ghToken').value = sessionStorage.getItem('kdl_gh_token')||''
+</script>
+</body></html>

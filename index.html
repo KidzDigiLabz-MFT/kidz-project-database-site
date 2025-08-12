@@ -1,77 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Kidz Digi Labz – Weekly Hub</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <header class="site-header">
-        <div class="container">
-            <h1 class="site-title">Kidz Digi Labz</h1>
-            <nav class="site-nav">
-                <a href="#newsletters">📰 Newsletters</a>
-                <a href="#database">📊 Project Database</a>
-                <a href="#rota">📅 Headset Rota</a>
-            </nav>
-        </div>
-    </header>
+<!doctype html><html lang='en'><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>Kidz Digi Labz</title>
+<script src="theme.js"></script>
+</head><body>
+<header>
+	<div class="container nav">
+		<div class="left">
+			<a href="index.html"><img src="assets/logo.svg" alt="KDL logo"></a>
+			<nav>
+				<a href="index.html">Home</a>
+				<a href="projects.html">Projects</a>
+				<a href="calendar.html">Calendar</a>
+				<a href="updates.html">Updates</a>
+				<a href="tasks.html">Tasks</a>
+				<a href="staff.html">Staff</a>
+				<a href="assets/brand/brand-guide.html">Brand</a>
+			</nav><button class="button" data-theme-toggle style="margin-left:8px">🌙 Dark</button>
+		</div>
+	</div>
+</header>
 
-    <main class="container">
-        <section id="newsletters">
-            <h2>📰 Latest Newsletters</h2>
-            <div id="newsletter-feed" class="post-feed"></div>
-        </section>
-
-        <section id="database">
-            <h2>📊 Project Database (Live from GitHub)</h2>
-            <div id="project-container" class="post-content">
-                <p>Loading project data from GitHub...</p>
-            </div>
-        </section>
-
-        <section id="rota">
-            <h2>📅 VR Headset Rota</h2>
-            <p><a href="rotas/VR Rota March April 2025.pdf" target="_blank">View March–April Rota (PDF)</a></p>
-        </section>
-    </main>
-
-    <footer class="site-footer">
-        <p>&copy; 2025 Kidz Digi Labz. Built for RMCH.</p>
-    </footer>
-
-    <script>
-    fetch("https://api.github.com/orgs/KidzDigiLabz-MFT/projects/KidzDigiLabz_master_Tracker/issues")
-      .then(res => res.json())
-      .then(issues => {
-        const container = document.getElementById('project-container');
-        container.innerHTML = '';
-        issues.forEach(issue => {
-          const labels = issue.labels.map(l => l.name).join(", ");
-          const div = document.createElement('div');
-          div.className = 'post-card';
-          div.innerHTML = `<h3><a href="${issue.html_url}" target="_blank">${issue.title}</a></h3>
-                           <p>${issue.body || "No description."}</p>
-                           <p><strong>Status:</strong> ${issue.state} | <strong>Labels:</strong> ${labels}</p>`;
-          container.appendChild(div);
-        });
-      })
-      .catch(error => {
-        document.getElementById('project-container').innerHTML = '<p>Unable to load data from GitHub. Please try again later.</p>';
-      });
-
-    fetch('newsletters/newsletters.json')
-      .then(res => res.json())
-      .then(posts => {
-        const feed = document.getElementById('newsletter-feed');
-        posts.forEach(post => {
-          const div = document.createElement('div');
-          div.className = 'post-card';
-          div.innerHTML = `<h3><a href="newsletters/${post.filename}" target="_blank">${post.title}</a></h3>
-                           <p>${post.summary}</p>`;
-          feed.appendChild(div);
-        });
-      });
-    </script>
-</body>
-</html>
+<section class="hero">
+	<div class="container">
+		<span class="badge">Kidz Digi Labz</span>
+		<h1>Helping kids feel brave with XR.</h1>
+		<p>This hub keeps teams aligned—status, events, updates and tools—wrapped in a friendly, colorful package for a children’s hospital context.</p>
+		<div class="kidbar"><div class="kiddot"></div><div class="kiddot"></div><div class="kiddot"></div><div class="kiddot"></div></div>
+	</div>
+</section>
+<main class="container">
+	<div class="grid">
+		<section class="card" style="grid-column:span 7">
+			<h2 class="section-title">Who we are</h2>
+			<p><strong>Kidz Digi Labz</strong> prototypes XR experiences, supports ward teams, and makes hospital days feel a little brighter.</p>
+			<div class="chips">
+				<span class="chip">XR</span><span class="chip">Play</span><span class="chip">Patient Experience</span><span class="chip">Therapies</span>
+			</div>
+		</section>
+		<section class="card" style="grid-column:span 5">
+			<h2 class="section-title">Quick links</h2>
+			<div class="tabbar">
+				<a class="button" href="projects.html">Projects</a>
+				<a class="button" href="calendar.html">Calendar</a>
+				<a class="button" href="updates.html">Updates</a>
+				<a class="button" href="tasks.html">Task Tracker</a>
+				<a class="button" href="staff.html">Staff Area</a>
+				<a class="button" href="assets/brand/brand-guide.html">Brand Guide</a>
+			</div>
+		</section>
+	</div>
+</main>
+<footer class="footer"><div class="container"><p>&copy; <span id="year"></span> Kidz Digi Labz</p></div></footer>
+<script>document.getElementById('year').textContent=new Date().getFullYear()</script>
+</body></html>

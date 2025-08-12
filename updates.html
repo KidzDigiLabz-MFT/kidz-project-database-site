@@ -1,0 +1,46 @@
+<!doctype html><html lang='en'><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<title>Kidz Digi Labz</title>
+<script src="theme.js"></script>
+</head><body>
+<header>
+	<div class="container nav">
+		<div class="left">
+			<a href="index.html"><img src="assets/logo.svg" alt="KDL logo"></a>
+			<nav>
+				<a href="index.html">Home</a>
+				<a href="projects.html">Projects</a>
+				<a href="calendar.html">Calendar</a>
+				<a href="updates.html">Updates</a>
+				<a href="tasks.html">Tasks</a>
+				<a href="staff.html">Staff</a>
+				<a href="assets/brand/brand-guide.html">Brand</a>
+			</nav><button class="button" data-theme-toggle style="margin-left:8px">🌙 Dark</button>
+		</div>
+	</div>
+</header>
+
+<section class="hero"><div class="container"><h1>Updates</h1><p>Short notes to keep everyone aligned.</p></div></section>
+<main class="container">
+	<section class="card">
+		<div class="tabbar">
+			<button class="button" id="loadLocal">Use Local Data</button>
+			<button class="button" id="importJSON">Import JSON</button>
+		</div>
+		<div id="feed" style="margin-top:12px"></div>
+	</section>
+</main>
+<script>
+const el=(s)=>document.querySelector(s); let posts=[]
+async function loadLocal(){posts=await fetch('data/posts.json').then(r=>r.json());render()}
+function render(){const feed=el('#feed');feed.innerHTML='';posts.sort((a,b)=>b.date.localeCompare(a.date)).forEach(p=>{const div=document.createElement('div');div.className='card';div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><strong>${p.title}</strong><span style="color:var(--muted)">${p.date}</span></div><p style="margin:8px 0">${p.body}</p><p style="margin:0;color:var(--muted);font-size:14px">By ${p.author}</p>`;feed.appendChild(div)})}
+document.getElementById('loadLocal').onclick=loadLocal
+document.getElementById('importJSON').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='application/json';i.onchange=async(e)=>{const t=await e.target.files[0].text();const obj=JSON.parse(t);posts=obj.posts||obj;render()};i.click()}
+loadLocal()
+</script>
+</body></html>
